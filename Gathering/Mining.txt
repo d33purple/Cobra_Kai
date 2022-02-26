@@ -1,0 +1,118 @@
+// Mining 
+// by Deep Purple
+//
+// Walk around mining with one pony and picks in your pack.
+//
+// There is no way to tell if your packy is full in ore. So, 
+// we keep dropping ore onto the pony until the ore falls
+// on the ground. This signals script that the packy cannot
+// hold any more and you have to go dump. Beware, if you walk 
+// near ore on the ground, it may assume you have triggered this 
+// mechanic.
+//
+// There is no way to detect a captcha in game. To give you time
+// to answer it and keep script running, you disarm your pickaxe
+// when it appears. This will give you 15 seconds to answer 
+// the captcha before script resumes. Disarm again if you need
+// more time to answer.
+//
+// Script does not check your regs, bandages, pet health or
+// anything like that. If you have pets, put them on guard.
+//
+// I recommend for miners:
+// -----------------------
+// * Magery to 70 
+// * Tracking 100
+// * Wrestling 100
+//
+// Instructions:
+// ==============================================================
+// Step 1. Get a pack animal, set variable 'packy' to this pet.
+// Step 2. Bind a key (of your choice) to following Hotkey:
+//         Dress->Arm/Disarm Right Hand
+// Step 3. Enable tracking for REDs
+// Step 4. Create script called 'RecallOut':
+//    
+//          overhead "*Recalling*" 55
+//          hotkey "Clear Target Queue"
+//          hotkey "Cancel Current Target"
+//          cast 'recall'
+//          wft
+//          if findtype 'runebook' 'backpack'
+//              targettype 'runebook' backpack
+//          elseif findtype 'recall rune' backpack
+//              targettype 'recall rune' backpack
+//          endif
+//
+// Step 5. Go to mining location
+// Step 6. Run script
+//
+//
+sysmsg "Mining Script" 73
+clearsysmsg
+
+// Check for packy
+if not find 'packy'
+    sysmsg "Make sure bind variable packy to your pet" 44
+    overhead "Hey, where is my packy?!" 44
+    stop
+endif
+
+// Put pick in hand
+dclicktype 'pickaxe'
+pause 1500
+
+// Loop
+while hits
+
+    // weight, pony drop, full check
+    if weight > 350
+        sysmsg "Wait, moving ore..." 48
+        while findtype 'iron ore' backpack as ore
+            lift ore 999
+            drop 'packy' 0 0 0
+            pause 1500
+            // see if we dropped it
+            if findtype 'iron ore' 'ground' as extra
+                lift extra
+                drop backpack
+                overhead "FULL!" 44
+                stop
+            endif
+        endwhile
+    endif
+
+    // pick check
+    if not findtype 'pickaxe'
+        overhead "I have no pickaxes!" 48            
+        stop
+    endif
+
+    //! captcha or pick broke
+    if rhandempty
+        sysmsg "Either pick broke or a captcha appeared, pausing..." 48
+        overhead "Continuing in 15 seconds" 48
+        pause 15000
+        dclicktype 'pickaxe'
+    endif
+
+    //! swing
+    hotkey "Use Item in Right Hand"
+    removetimer 'mine'
+    createtimer 'mine'
+    while timer 'mine' < 1500
+        if insysmsg 'will save'
+            sysmsg "Pausing for world save" 43
+            waitforsysmsg "save complete"
+            sysmsg "Got world save message" 43
+        elseif insysmsg "now tracking"
+            headmsg "PK! PK!" 22
+            script 'RecallOut'
+        elseif insysmsg 'harvest'
+            overhead "Find a new spot" 73
+            break
+        else
+            pause 100
+        endif
+    endwhile
+endwhile

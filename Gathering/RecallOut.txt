@@ -1,0 +1,10 @@
+overhead "*Recalling*" 55
+hotkey "Clear Target Queue"
+hotkey "Cancel Current Target"
+cast 'recall'
+wft
+if findtype 'runebook' 'backpack'
+	targettype 'runebook' backpack
+elseif findtype 'recall rune' backpack
+	targettype 'recall rune' backpack
+endif
