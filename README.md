@@ -1,2 +1,2 @@
 # Cobra_Kai
-Sweep the leg!
+Strike first. Strike hard. No mercy
